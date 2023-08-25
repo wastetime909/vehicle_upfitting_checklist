@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Vehicle Upfitting Checklist</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <script src="js/bootstrap.min.js"></script>
+  <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/offcanvas/">
+  <style>
+    .truckRelated{
+        display: none;
+    }
+    .truckGroup{
+        border: 1px solid orange;
+    }
+    .vanRelated{
+        display: none;
+    }
+
+    .modal {
+      display: none;
+      /* position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center; */
+    }
+
+    .modal-content {
+      /* background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5); */
+    }
+
+    #modalImage {
+    max-width: 100%;
+    max-height: auto;
+    margin: 0 auto;
+  }
+
+  </style>
+  
+  
+  <script>
+
+    function hasOverlap(array1, array2) {
+      for (let i = 0; i < array1.length; i++) {
+        if (array2.includes(array1[i])) {
+          return true; 
+        }
+      }
+      return false; 
+    }
+
+    function showAdditionalOptions() {
+      var vehicleType = document.getElementById('vehicleType').value;
+      var truckPayload = document.getElementById('truckPayload').value;
+      
+      // Reset all additional options
+      document.getElementById('feedback').innerHTML = '';
+      
+      // Snow Plow is selectable only for Pickup Truck and 3/4 Ton (F250, Ram2500)
+      if (vehicleType === 'Pickup Truck' && truckPayload === '3/4 Ton (F250, Ram2500)') {
+        // addOption('Snow Plow');
+        var element = document.getElementById('snowPlowCheckbox')
+        element.style.display = 'block';
+      }else{
+        var element = document.getElementById('snowPlowCheckbox')
+        element.style.display = 'none';
+      }
+      
+      // Power Liftgate is selectable only for Pickup Truck
+      if (vehicleType === 'Pickup Truck') {
+        
+        var truckElements = document.getElementsByClassName('truckRelated')
+        for (var i = 0; i < truckElements.length; i++) {
+            var element = truckElements[i];
+            element.style.display = 'block';
+        }
+        if(truckPayload == '3/4 Ton (F250, Ram2500)') {
+            var element = document.getElementById('snowPlowCheckbox')
+            element.style.display = 'block';
+        } else{
+            var element = document.getElementById('snowPlowCheckbox')
+            element.style.display = 'none';
+        }
+        } else if(vehicleType === 'Cargo Van'){
+          var vanElements = document.getElementsByClassName('vanRelated')
+          for (var i = 0; i < vanElements.length; i++) {
+              var element = vanElements[i];
+              element.style.display = 'table-row';
+          }
+        }
+        else{
+        var truckElements = document.getElementsByClassName('truckRelated')
+        for (var i = 0; i < truckElements.length; i++) {
+            var element = truckElements[i];
+            element.style.display = 'none';
+        }
+        var vanElements = document.getElementsByClassName('vanRelated')
+        for (var i = 0; i < vanElements.length; i++) {
+            var element = vanElements[i];
+            element.style.display = 'none';
+        }
+      }
+    }
+
+    function submitForm() {
+      var vehicleType = document.getElementById('vehicleType').value;
+      var optionSelected = true;
+      var needBrain = false;
+      var newRequirement = false;
+      var additionalFeedback = [];
+      var evOption = document.getElementById('evOption')
+      if(vehicleType === 'Pickup Truck'){
+        additionalFeedback.push('Back Rack');
+      }
+      var upfittingOptions = document.getElementsByName('upfittingOptions');
+      var batteryBrainPackage = ['Strobe Light/Mini Light Bar', 'Spot Light', 
+      'Front/Back Beacon', 'AC Inverter', 'Traffic Director', 'Arrow Board', 'Power Liftgate']
+      
+      var masterSwitchPackage = ['Power Liftgate', 'Truck Salter', 'Dump Box']
+      var twoHandPackage = ['Power Liftgate']
+      var fuseBlockPackage = ['Strobe Light/Mini Light Bar', 'Front/Back Beacon', 'Spot Light', 'AC Inverter', 'Traffic Director',
+      'Arrow Board', 'Power Liftgate', 'Truck Salter']
+      var roofRackPackage = ['Strobe Light/Mini Light Bar', 'Spot Light', 'Traffic Director']
+
+      // Conflicts
+      var truckGateConflict = ['Power Liftgate', 'Truck Salter']
+      var capConflict = ['Back Rack', 'Strobe Light/Mini Light Bar', 'Spot Light', 'Power Liftgate', 'Truck Salter']
+
+      
+      var selectedOptions = [];
+      for (var i = 0; i < upfittingOptions.length; i++) {
+        if (upfittingOptions[i].checked) {
+          selectedOptions.push(upfittingOptions[i].value);
+        }
+      }
+      
+      var feedbackElement = document.getElementById('feedback');
+      var additionalFeedbackElement = document.getElementById('additionalFeedback');
+      feedbackElement.innerHTML = '';
+      additionalFeedbackElement.innerHTML = '';
+      
+      if (selectedOptions.length > 0) {
+        var feedbackMessage = 'Selected Options: ' + selectedOptions.join(', ');
+        feedbackElement.textContent = feedbackMessage;
+
+        if (hasOverlap(selectedOptions, masterSwitchPackage)){
+          additionalFeedback.push("Master Switch");
+        }
+        if (hasOverlap(selectedOptions, twoHandPackage)){
+          additionalFeedback.push("Two Handed Switch");
+        }
+      } else {
+        // feedbackElement.textContent = 'Please select at least one option.';
+        optionSelected = false;
+      };
+      
+      // Fuse Block 
+
+      if (hasOverlap(selectedOptions, fuseBlockPackage)){
+          additionalFeedback.push("Fuse Block");
+        };
+      
+      // EV related
+      if(evOption.checked){
+        console.log('lorem');
+        if (hasOverlap(selectedOptions, batteryBrainPackage)){
+          additionalFeedback.push("Battery Brain");
+        }
+      }
+
+      
+      if(vehicleType == 'Sedan'){
+        
+      }else if(vehicleType == 'SUV'){
+        additionalFeedback.push("Backup Alarm");
+      }else if(vehicleType == 'Minivan'){
+        additionalFeedback.push("Backup Alarm");
+      }else if(vehicleType == 'Cargo Van'){
+        additionalFeedback.push("Backup Alarm");
+      }else if(vehicleType == 'Pickup Truck'){
+        additionalFeedback.push("Backup Alarm");
+      }
+      if(additionalFeedback.length > 0){
+        var additionalMessage = 'Additional Options Required: ' + additionalFeedback.join(', ');
+        additionalFeedbackElement.textContent = additionalMessage;
+        
+      }
+
+      createModalButtonsFromArray(additionalFeedback);
+    }
+
+
+  </script>
+</head>
+<body class="bg-light">
+  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="display-4">Vehicle Upfitting Checklist</h1>
+    <p class="lead">Introduction....</p>
+  </div>
+  
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <form onsubmit="return false;">
+          <label for="vehicleType">Vehicle Type:</label>
+          <select id="vehicleType" onchange="showAdditionalOptions();">
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Minivan">Minivan</option>
+            <option value="Cargo Van">Cargo Van</option>
+            <option value="Pickup Truck">Pickup Truck</option>
+          </select><br><br>
+          <div class="truckRelated">
+              <label for="truckPayload">Truck Payload:</label>
+              <select id="truckPayload" onchange="showAdditionalOptions();">
+              <option value="1/4 Ton (Ranger)">1/4 Ton (Ranger)</option>
+              <option value="1/2 Ton (F150)">1/2 Ton (F150)</option>
+              <option value="3/4 Ton (F250, Ram2500)">3/4 Ton (F250, Ram2500)</option>
+              <option value="1 Ton (F350, Ram3500)">1 Ton (F350, Ram3500)</option>
+              </select><br><br>
+          </div>
+          
+          
+          <div class="container">
+            <table class="table table-striped">
+                <tr>
+                  <th>
+                    Fully Electric Vehicle
+                  </th>
+                  <td>
+                    <input type="checkbox" id="evOption" value="Fully EV"> Fully Electric Vehicle
+                  </td>
+                </tr>
+                <tr class="table-primary">
+                  <th colspan="2">Upfitting Requirements:</th>
+                </tr>
+                
+                <tr>
+                  <th>
+                    Strobe Light/Mini Light Bar
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Strobe Light/Mini Light Bar"> 
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Front/Back Beacon
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Front/Back Beacon"> 
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Spot Light
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Spot Light"> 
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    AC Inverter
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="AC Inverter"> 
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Traffic Director
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Traffic Director"> 
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Arrow Board
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Arrow Board"> 
+                  </td>
+                </tr>
+                <tr class="vanRelated">
+                  <th>
+                    Ladder Rack
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Ladder Rack" >
+                  </td>
+                </tr>
+            </table>
+          </div>
+          <table class="table table-striped truckGroup truckRelated">
+            <tr id = "snowPlowCheckbox">
+              <th>
+                Snow Plow
+              </th>
+              <td>
+                <input type="checkbox" name="upfittingOptions" value="Snow Plow">
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Power Liftgate
+              </th>
+              <td>
+                <input type="checkbox" name="upfittingOptions" value="Power Liftgate" id="powerLiftgateCheckbox">
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Truck Cap
+              </th>
+              <td>
+                <input type="checkbox" name="upfittingOptions" value="Truck Cap">
+              </td>
+            </tr>
+          </table>
+          <button onclick="submitForm()">Submit</button>
+          <button id="refreshButton">Redo</button>
+        </form>
+      </div>
+      <div class="col-md-6">
+        <h3>Additional Upfitting Options:</h3>
+        <div id="feedback"></div>
+        <div id="additionalFeedback"></div>
+        <div id="buttonContainer"></div>
+      </div>
+    </div>
+    <!--
+    <button class="open-modal-button" data-image="image1.jpg" data-text="textContent1">Open Modal 1</button>
+    <button class="open-modal-button" data-image="image2.jpg" data-text="textContent2">Open Modal 2</button>
+    -->
+  </div>
+  
+    <div class="modal" id="myModal">
+      <div class="modal-dialog">
+        <div class="modal-content" id="modalContent">
+          <div class="modal-body">
+            <img id="modalImage" src="" alt="Dynamic Image">
+            <p id="modalText"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+
+
+    <script src="textContents.js"></script>
+    <script src="callButton.js"></script>
+    <script>
+
+      const modal = document.getElementById('myModal');
+      const modalImage = document.getElementById('modalImage');
+      const modalText = document.getElementById('modalText');
+      const openModalButtons = document.querySelectorAll('.open-modal-button');
+
+      openModalButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const imageSource = this.getAttribute('data-image');
+          const textContentVariable = this.getAttribute('data-text');
+          modalImage.src = `images/${imageSource}`;
+          modalText.textContent = window[textContentVariable];
+          console.log(textContentVariable);
+
+          modal.style.display = 'flex';
+        });
+      });
+
+      modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    </script>
+
+    <script>
+      const refreshButton = document.getElementById('refreshButton');
+      
+      refreshButton.addEventListener('click', function() {
+        // Reload the current page
+        location.reload();
+      });
+    </script>
+
+</body>
+</html>
