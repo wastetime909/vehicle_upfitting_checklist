@@ -12,8 +12,9 @@
     .truckGroup{
         border: 1px solid orange;
     }
-    .vanRelated{
-        display: none;
+
+    .alert{
+      display: none;
     }
 
     .modal {
@@ -62,15 +63,14 @@
       // Reset all additional options
       document.getElementById('feedback').innerHTML = '';
       
-      // Snow Plow is selectable only for Pickup Truck and 3/4 Ton (F250, Ram2500)
-      if (vehicleType === 'Pickup Truck' && truckPayload === '3/4 Ton (F250, Ram2500)') {
-        // addOption('Snow Plow');
-        var element = document.getElementById('snowPlowCheckbox')
-        element.style.display = 'block';
-      }else{
-        var element = document.getElementById('snowPlowCheckbox')
-        element.style.display = 'none';
-      }
+      // if (vehicleType === 'Pickup Truck' && truckPayload === '3/4 Ton (F250, Ram2500)') {
+      //   // addOption('Snow Plow');
+      //   var element = document.getElementById('snowPlowCheckbox')
+      //   element.style.display = 'block';
+      // }else{
+      //   var element = document.getElementById('snowPlowCheckbox')
+      //   element.style.display = 'none';
+      // }
       
       // Power Liftgate is selectable only for Pickup Truck
       if (vehicleType === 'Pickup Truck') {
@@ -80,31 +80,32 @@
             var element = truckElements[i];
             element.style.display = 'block';
         }
-        if(truckPayload == '3/4 Ton (F250, Ram2500)') {
-            var element = document.getElementById('snowPlowCheckbox')
-            element.style.display = 'block';
-        } else{
-            var element = document.getElementById('snowPlowCheckbox')
-            element.style.display = 'none';
-        }
-        } else if(vehicleType === 'Cargo Van'){
-          var vanElements = document.getElementsByClassName('vanRelated')
-          for (var i = 0; i < vanElements.length; i++) {
-              var element = vanElements[i];
-              element.style.display = 'table-row';
-          }
-        }
-        else{
+        // if(truckPayload == '3/4 Ton (F250, Ram2500)') {
+        //     var element = document.getElementById('snowPlowCheckbox')
+        //     element.style.display = 'block';
+        // } else{
+        //     var element = document.getElementById('snowPlowCheckbox')
+        //     element.style.display = 'none';
+        // }
+        } 
+        // else if(vehicleType === 'Cargo Van'){
+        //   var vanElements = document.getElementsByClassName('vanRelated')
+        //   for (var i = 0; i < vanElements.length; i++) {
+        //       var element = vanElements[i];
+        //       element.style.display = 'table-row';
+        //   }
+        // }
+        else {
         var truckElements = document.getElementsByClassName('truckRelated')
         for (var i = 0; i < truckElements.length; i++) {
             var element = truckElements[i];
             element.style.display = 'none';
         }
-        var vanElements = document.getElementsByClassName('vanRelated')
-        for (var i = 0; i < vanElements.length; i++) {
-            var element = vanElements[i];
-            element.style.display = 'none';
-        }
+        // var vanElements = document.getElementsByClassName('vanRelated')
+        // for (var i = 0; i < vanElements.length; i++) {
+        //     var element = vanElements[i];
+        //     element.style.display = 'none';
+        // }
       }
     }
 
@@ -114,6 +115,7 @@
       var needBrain = false;
       var newRequirement = false;
       var additionalFeedback = [];
+      var warningMessage = [];
       var evOption = document.getElementById('evOption')
       if(vehicleType === 'Pickup Truck'){
         additionalFeedback.push('Back Rack');
@@ -129,6 +131,8 @@
       var roofRackPackage = ['Strobe Light/Mini Light Bar', 'Spot Light', 'Traffic Director']
 
       // Conflicts
+      var passengerVehicles = ['Sedan', 'SUV', 'Minivan']
+      var passengerConflict = ['Power Liftgate', 'Truck Salter', 'Ladder Rack', 'Truck Cap', 'Arrow Board']
       var truckGateConflict = ['Power Liftgate', 'Truck Salter']
       var capConflict = ['Back Rack', 'Strobe Light/Mini Light Bar', 'Spot Light', 'Power Liftgate', 'Truck Salter']
 
@@ -144,10 +148,20 @@
       var additionalFeedbackElement = document.getElementById('additionalFeedback');
       feedbackElement.innerHTML = '';
       additionalFeedbackElement.innerHTML = '';
-      
+
+      var warningElement = document.getElementById('warningMessages');
+      warningElement.innerHTML = '';
+
       if (selectedOptions.length > 0) {
         var feedbackMessage = 'Selected Options: ' + selectedOptions.join(', ');
         feedbackElement.textContent = feedbackMessage;
+
+        // Level One Check First
+        if (passengerVehicles.includes(vehicleType) && hasOverlap(selectedOptions, passengerConflict)){
+          warningMessage.push("Some of the selected options cannot be applied to passenger vehicles (Sedan, Minivan, SUV)");
+          warningElement.style.display = 'block';
+          warningElement.textContent = warningMessage;
+        }
 
         if (hasOverlap(selectedOptions, masterSwitchPackage)){
           additionalFeedback.push("Master Switch");
@@ -289,7 +303,7 @@
                     <input type="checkbox" name="upfittingOptions" value="Arrow Board"> 
                   </td>
                 </tr>
-                <tr class="vanRelated">
+                <tr>
                   <th>
                     Ladder Rack
                   </th>
@@ -297,40 +311,43 @@
                     <input type="checkbox" name="upfittingOptions" value="Ladder Rack" >
                   </td>
                 </tr>
+                <tr class="table-warning">
+                  <th colspan="2">Pickup Truck Upfitting Only:</th>
+                </tr>
+                <tr>
+                  <th>
+                    Snow Plow
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Snow Plow">
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Power Liftgate
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Power Liftgate" id="powerLiftgateCheckbox">
+                  </td>
+                </tr>
+                <tr>
+                  <th>
+                    Truck Cap
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Truck Cap">
+                  </td>
+                </tr>
             </table>
           </div>
-          <table class="table table-striped truckGroup truckRelated">
-            <tr id = "snowPlowCheckbox">
-              <th>
-                Snow Plow
-              </th>
-              <td>
-                <input type="checkbox" name="upfittingOptions" value="Snow Plow">
-              </td>
-            </tr>
-            <tr>
-              <th>
-                Power Liftgate
-              </th>
-              <td>
-                <input type="checkbox" name="upfittingOptions" value="Power Liftgate" id="powerLiftgateCheckbox">
-              </td>
-            </tr>
-            <tr>
-              <th>
-                Truck Cap
-              </th>
-              <td>
-                <input type="checkbox" name="upfittingOptions" value="Truck Cap">
-              </td>
-            </tr>
-          </table>
+
           <button onclick="submitForm()">Submit</button>
           <button id="refreshButton">Redo</button>
         </form>
       </div>
       <div class="col-md-6">
         <h3>Additional Upfitting Options:</h3>
+        <div class="alert alert-danger" role="alert" id="warningMessages"></div>
         <div id="feedback"></div>
         <div id="additionalFeedback"></div>
         <div id="buttonContainer"></div>
