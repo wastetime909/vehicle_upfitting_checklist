@@ -44,8 +44,17 @@
 
   </style>
   
-  
+  <script src="js/jquery-3.7.0.min.js"></script>
   <script>
+
+    function containsAllElements(largerArray, smallerArray) {
+      for (const element of smallerArray) {
+        if (!largerArray.includes(element)) {
+          return false;
+        }
+      }
+      return true;
+    }
 
     function hasOverlap(array1, array2) {
       for (let i = 0; i < array1.length; i++) {
@@ -63,16 +72,6 @@
       // Reset all additional options
       document.getElementById('feedback').innerHTML = '';
       
-      // if (vehicleType === 'Pickup Truck' && truckPayload === '3/4 Ton (F250, Ram2500)') {
-      //   // addOption('Snow Plow');
-      //   var element = document.getElementById('snowPlowCheckbox')
-      //   element.style.display = 'block';
-      // }else{
-      //   var element = document.getElementById('snowPlowCheckbox')
-      //   element.style.display = 'none';
-      // }
-      
-      // Power Liftgate is selectable only for Pickup Truck
       if (vehicleType === 'Pickup Truck') {
         
         var truckElements = document.getElementsByClassName('truckRelated')
@@ -111,15 +110,15 @@
 
     function submitForm() {
       var vehicleType = document.getElementById('vehicleType').value;
+      var truckPayload = document.getElementById('truckPayload').value;
       var optionSelected = true;
       var needBrain = false;
       var newRequirement = false;
       var additionalFeedback = [];
       var warningMessage = [];
       var evOption = document.getElementById('evOption')
-      if(vehicleType === 'Pickup Truck'){
-        additionalFeedback.push('Back Rack');
-      }
+      var buttonContainer = document.getElementById('buttonContainer');
+      var greenLight = true;
       var upfittingOptions = document.getElementsByName('upfittingOptions');
       var batteryBrainPackage = ['Strobe Light/Mini Light Bar', 'Spot Light', 
       'Front/Back Beacon', 'AC Inverter', 'Traffic Director', 'Arrow Board', 'Power Liftgate']
@@ -132,11 +131,14 @@
 
       // Conflicts
       var passengerVehicles = ['Sedan', 'SUV', 'Minivan']
-      var passengerConflict = ['Power Liftgate', 'Truck Salter', 'Ladder Rack', 'Truck Cap', 'Arrow Board']
+      var passengerConflict = ['Power Liftgate', 'Truck Salter', 'Ladder Rack', 'Truck Cap', 'Arrow Board', 'Snow Plow']
+      var cargoVanConflict = ['Power Liftgate', 'Truck Salter', 'Truck Cap', 'Snow Plow']
       var truckGateConflict = ['Power Liftgate', 'Truck Salter']
       var capConflict = ['Back Rack', 'Strobe Light/Mini Light Bar', 'Spot Light', 'Power Liftgate', 'Truck Salter']
+      var vanVehicles = ['Cargo Van', 'Minivan']
+      var vanOnly = ['Partition']
 
-      
+
       var selectedOptions = [];
       for (var i = 0; i < upfittingOptions.length; i++) {
         if (upfittingOptions[i].checked) {
@@ -148,65 +150,107 @@
       var additionalFeedbackElement = document.getElementById('additionalFeedback');
       feedbackElement.innerHTML = '';
       additionalFeedbackElement.innerHTML = '';
+      buttonContainer.innerHTML = '';
 
       var warningElement = document.getElementById('warningMessages');
-      warningElement.innerHTML = '';
+      var alertContent = document.getElementById('alertContent');
+      warningElement.style.display = 'none';
+      alertContent.innerHTML = '';
 
       if (selectedOptions.length > 0) {
-        var feedbackMessage = 'Selected Options: ' + selectedOptions.join(', ');
-        feedbackElement.textContent = feedbackMessage;
+        // var feedbackMessage = 'Selected Options: ' + selectedOptions.join(', ');
+        // feedbackElement.textContent = feedbackMessage;
 
         // Level One Check First
         if (passengerVehicles.includes(vehicleType) && hasOverlap(selectedOptions, passengerConflict)){
           warningMessage.push("Some of the selected options cannot be applied to passenger vehicles (Sedan, Minivan, SUV)");
           warningElement.style.display = 'block';
-          warningElement.textContent = warningMessage;
+          alertContent.textContent = warningMessage;
+          greenLight = false;
+        } else if(vehicleType == 'Cargo Van' && hasOverlap(selectedOptions, cargoVanConflict)){
+          warningMessage.push("Some of the selected options cannot be applied to Cargo Van");
+          warningElement.style.display = 'block';
+          alertContent.textContent = warningMessage;
+          greenLight = false;
+        } else if (vehicleType == 'Pickup Truck' && containsAllElements(selectedOptions, truckGateConflict)){
+          warningMessage.push("Power Liftgate and Truck Salter cannot be installed at the same time");
+          warningElement.style.display = 'block';
+          alertContent.textContent = warningMessage;
+          greenLight = false;
+        } else if(!vanVehicles.includes(vehicleType) && hasOverlap(selectedOptions, vanOnly)){
+          warningMessage.push("One or more upfitting options can only be applied to a Cargo Van or Minivan");
+          warningElement.style.display = 'block';
+          alertContent.textContent = warningMessage;
+          greenLight = false;
+        }else if(vehicleType == 'Pickup Truck' && selectedOptions.includes('Truck Cap') && hasOverlap(selectedOptions, capConflict)){
+          warningMessage.push("One or more upfitting options cannot be installed with Truck Cap selected");
+          warningElement.style.display = 'block';
+          alertContent.textContent = warningMessage;
+          greenLight = false;
+        } else if(vehicleType == 'Pickup Truck' && truckPayload != '3/4 Ton (F250, Ram2500)' && selectedOptions.includes('Snow Plow')){
+          warningMessage.push("Only 3/4 Ton Pickup Trucks shall be used to mount snow plow");
+          console.log(truckPayload);
+          warningElement.style.display = 'block';
+          alertContent.textContent = warningMessage;
+          greenLight = false;
+        } else {
+          greenLight = true;
         }
+        if(greenLight){
+          if (hasOverlap(selectedOptions, masterSwitchPackage)){
+            additionalFeedback.push("Master Switch");
+          }
+          if (hasOverlap(selectedOptions, twoHandPackage)){
+            additionalFeedback.push("Two Handed Switch");
+          }
 
-        if (hasOverlap(selectedOptions, masterSwitchPackage)){
-          additionalFeedback.push("Master Switch");
-        }
-        if (hasOverlap(selectedOptions, twoHandPackage)){
-          additionalFeedback.push("Two Handed Switch");
-        }
-      } else {
-        // feedbackElement.textContent = 'Please select at least one option.';
-        optionSelected = false;
-      };
-      
-      // Fuse Block 
+          // Fuse Block 
 
-      if (hasOverlap(selectedOptions, fuseBlockPackage)){
-          additionalFeedback.push("Fuse Block");
+          if (hasOverlap(selectedOptions, fuseBlockPackage)){
+              additionalFeedback.push("Fuse Block");
+            };
+          
+          // EV related
+          if(evOption.checked){
+            if (hasOverlap(selectedOptions, batteryBrainPackage)){
+              additionalFeedback.push("Battery Brain");
+            }
+          }
+          
+          if(vehicleType == 'Sedan' || vehicleType == 'Minivan' || vehicleType == 'SUV'){
+            if(hasOverlap(selectedOptions, roofRackPackage)){
+              additionalFeedback.push('Roof Rack');
+            }
+          };
+          // if(additionalFeedback.length > 0){
+          //   var additionalMessage = 'Additional Options Required: ' + additionalFeedback.join(', ');
+          //   additionalFeedbackElement.textContent = additionalMessage;
+            
+          // }
+
+          
         };
-      
-      // EV related
-      if(evOption.checked){
-        console.log('lorem');
-        if (hasOverlap(selectedOptions, batteryBrainPackage)){
-          additionalFeedback.push("Battery Brain");
-        }
-      }
-
-      
-      if(vehicleType == 'Sedan'){
-        
-      }else if(vehicleType == 'SUV'){
-        additionalFeedback.push("Backup Alarm");
-      }else if(vehicleType == 'Minivan'){
-        additionalFeedback.push("Backup Alarm");
-      }else if(vehicleType == 'Cargo Van'){
-        additionalFeedback.push("Backup Alarm");
-      }else if(vehicleType == 'Pickup Truck'){
-        additionalFeedback.push("Backup Alarm");
-      }
-      if(additionalFeedback.length > 0){
-        var additionalMessage = 'Additional Options Required: ' + additionalFeedback.join(', ');
-        additionalFeedbackElement.textContent = additionalMessage;
-        
-      }
-
-      createModalButtonsFromArray(additionalFeedback);
+      };
+        // Standard upfitting options
+        if(vehicleType == 'SUV'){
+          additionalFeedback.push("Backup Alarm");
+          additionalFeedback.push("Key Storage Tube");
+        }else if(vehicleType == 'Minivan'){
+          additionalFeedback.push("Backup Alarm");
+          additionalFeedback.push("Key Storage Tube");
+        }else if(vehicleType == 'Cargo Van'){
+          additionalFeedback.push("Backup Alarm");
+          additionalFeedback.push("Key Storage Tube");
+        }else if(vehicleType == 'Pickup Truck'){
+          additionalFeedback.push("Backup Alarm");
+          additionalFeedback.push("Key Storage Tube");
+          if(!selectedOptions.includes('Truck Cap')){
+            additionalFeedback.push('Back Rack');
+          }
+        };
+      if(additionalFeedback.length > 0 && greenLight){
+        createModalButtonsFromArray(additionalFeedback);
+      }  
     }
 
 
@@ -232,7 +276,7 @@
           </select><br><br>
           <div class="truckRelated">
               <label for="truckPayload">Truck Payload:</label>
-              <select id="truckPayload" onchange="showAdditionalOptions();">
+              <select id="truckPayload">
               <option value="1/4 Ton (Ranger)">1/4 Ton (Ranger)</option>
               <option value="1/2 Ton (F150)">1/2 Ton (F150)</option>
               <option value="3/4 Ton (F250, Ram2500)">3/4 Ton (F250, Ram2500)</option>
@@ -311,6 +355,14 @@
                     <input type="checkbox" name="upfittingOptions" value="Ladder Rack" >
                   </td>
                 </tr>
+                <tr>
+                  <th>
+                    Partition
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Partition" >
+                  </td>
+                </tr>
                 <tr class="table-warning">
                   <th colspan="2">Pickup Truck Upfitting Only:</th>
                 </tr>
@@ -338,6 +390,14 @@
                     <input type="checkbox" name="upfittingOptions" value="Truck Cap">
                   </td>
                 </tr>
+                <tr>
+                  <th>
+                    Truck Salter
+                  </th>
+                  <td>
+                    <input type="checkbox" name="upfittingOptions" value="Truck Salter">
+                  </td>
+                </tr>
             </table>
           </div>
 
@@ -347,16 +407,20 @@
       </div>
       <div class="col-md-6">
         <h3>Additional Upfitting Options:</h3>
-        <div class="alert alert-danger" role="alert" id="warningMessages"></div>
+        
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" id = "warningMessages">
+          <span id="alertContent">
+          
+          </span>
+          <button type="button" class="btn-close" aria-label="Close"></button>
+        </div>
+
+
         <div id="feedback"></div>
         <div id="additionalFeedback"></div>
         <div id="buttonContainer"></div>
       </div>
     </div>
-    <!--
-    <button class="open-modal-button" data-image="image1.jpg" data-text="textContent1">Open Modal 1</button>
-    <button class="open-modal-button" data-image="image2.jpg" data-text="textContent2">Open Modal 2</button>
-    -->
   </div>
   
     <div class="modal" id="myModal">
@@ -403,10 +467,18 @@
 
     <script>
       const refreshButton = document.getElementById('refreshButton');
-      
       refreshButton.addEventListener('click', function() {
-        // Reload the current page
         location.reload();
+      });
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var warningElement = document.getElementById("warningMessages");
+        var closeButton = warningElement.querySelector(".btn-close");
+        closeButton.addEventListener("click", function () {
+          warningElement.style.display = 'none';
+        });
       });
     </script>
 
