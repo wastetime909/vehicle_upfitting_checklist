@@ -9,7 +9,7 @@ It can also span multiple lines.
 `;
 
 window.FuseBlock = `
-Fuse block is required if there's a need of electronic upfitting option
+Fuse block is required if there's a need of electronic upfitting option. Make sure the auxiliary and fuse block are properly grounded to the ground pole in the vehicle
 `;
 
 window.MasterSwitch =`
@@ -37,6 +37,11 @@ Permanently installed, GE Supra Elante (Part #001607-1) white solid metal key st
 window.BackupAlarm =`
 Multi-frequency broadband white sound backup alarm (e.g Brigade Model #SY82BB)
 `;
+
 window.BackRack =`
 
+`;
+
+window.AcInverter = `
+Inverter installed on passenger side, not to interfere with operation of the vehicle and not to cause tripping hazards. Facing outward and behind seat
 `;
