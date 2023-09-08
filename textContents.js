@@ -45,3 +45,5 @@ window.BackRack =`
 window.AcInverter = `
 Inverter installed on passenger side, not to interfere with operation of the vehicle and not to cause tripping hazards. Facing outward and behind seat
 `;
+
+window.WiringRequirement = `All wirings must be loomed. No loose wires are exposed inside the cab.`

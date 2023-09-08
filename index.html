@@ -45,9 +45,9 @@
 
   </style>
   
-  <script src="js/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.14.0/dist/pdf-lib.js"></script>
+</head>
   <script>
-
     function containsAllElements(largerArray, smallerArray) {
       for (const element of smallerArray) {
         if (!largerArray.includes(element)) {
@@ -219,7 +219,7 @@
           // Fuse Block 
 
           if (hasOverlap(selectedOptions, fuseBlockPackage)){
-              additionalFeedback.push("Fuse Block");
+              additionalFeedback.push("Fuse Block", "Wiring Requirement");
             };
           
           // EV related
@@ -239,11 +239,15 @@
             moreInfoArray = showOverlap(selectedOptions, additionalInfo)
           };
 
-          // if(additionalFeedback.length > 0){
-          //   var additionalMessage = 'Additional Options Required: ' + additionalFeedback.join(', ');
-          //   additionalFeedbackElement.textContent = additionalMessage;
-            
-          // }
+          // Hidden placeholder for selected options (generate PDF purpose)
+          const optionHolder = document.getElementById('optionHolder');
+          optionHolder.innerHTML = "";
+          selectedOptions.forEach((stringValue, index) => {
+          const newOptionDiv = document.createElement('div');
+          newOptionDiv.id = `option_${index}`;
+          newOptionDiv.textContent = `${stringValue}`;
+          optionHolder.appendChild(newOptionDiv);
+        });
 
           
         };
@@ -269,7 +273,7 @@
         createModalButtonsFromArray(additionalFeedback);
       }
       
-      if(moreInfoArray.length > 0 && greenLight){
+      if(moreInfoArray && greenLight){
         createInfoButtonsFromArray(moreInfoArray);
       }
     }
@@ -278,9 +282,13 @@
   </script>
 </head>
 <body class="bg-light">
-  <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+  <div class="container pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
     <h1 class="display-4">Vehicle Upfitting Checklist</h1>
-    <p class="lead">Introduction....</p>
+    <p class="lead">Welcome to our Vehicle Upfitting Check List, an internal tool designed to streamline vehicle customization. 
+      Tailor vehicles precisely to our unique needs by selecting vehicle types and configuring them with specific upfitting options. 
+      The Check List adapts dynamically as you make choices, offering additional options and providing comprehensive guidance. 
+      For select upfitting choices, it includes reminders and critical details to ensure well-informed decisions. 
+      The Vehicle Upfitting Check List is your trusted companion in this endeavor.</p>
   </div>
   
   <div class="container">
@@ -439,6 +447,8 @@
 
 
           <div id="feedback"></div>
+          <div id="optionHolder"></div>
+
           <div id="additionalFeedback"></div>
           <div id="buttonContainer"></div>
         </div>
@@ -461,8 +471,98 @@
       </div>
     </div>
 
+  
     
+    <button id="generatePDFButton">Generate PDF</button>
 
+    <script>
+        // Function to generate the PDF
+        async function generatePDF() {
+
+            // Parse selected options
+            const optionHolder = document.getElementById('optionHolder');
+            const optionElements = optionHolder.querySelectorAll('div');
+
+            // Parse Recommended Options
+            const additionalHolder = document.getElementById('buttonContainer');
+            const additionalElements = additionalHolder.querySelectorAll('button');
+            
+
+
+            // Create a new PDF document
+            const pdfDoc = await PDFLib.PDFDocument.create();
+
+            // Add a new page to the document
+            const page = pdfDoc.addPage([400, 400]);
+
+            // Draw text on the page
+            const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+            const drawTextOptions = {
+                x: 50,
+                y: 350,
+                size: 30,
+                font: helveticaFont,
+                color: PDFLib.rgb(0, 0, 0),
+            };
+
+            const drawAdditionalOptions = {
+                x: 50,
+                y: 250,
+                size: 30,
+                font: helveticaFont,
+                color: PDFLib.rgb(0, 0, 0),
+            };
+            page.drawText('Upfitting Checklist!', drawTextOptions);
+
+            let yOffset = 330;
+            const additionalOptionsFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+            const additionalOptionsTitleOptions = {
+                x: 50,
+                y: yOffset,
+                size: 14,
+                font: additionalOptionsFont,
+                color: PDFLib.rgb(0, 0, 0),
+            };
+            const additionalOptionsTextOptions = {
+                x: 50,
+                size: 12,
+                font: additionalOptionsFont,
+                color: PDFLib.rgb(0, 0, 0),
+            };
+
+            // Print Selected Options
+            optionElements.forEach((optionElement) => {
+              const optionText = optionElement.textContent;
+              yOffset -= 20;
+              page.drawText(optionText, { ...additionalOptionsTextOptions, y: yOffset});
+            });
+
+            page.drawText('Additional Upfitting Requirements', drawAdditionalOptions);
+
+            // Print Additional Options
+            additionalElements.forEach((additionalElement) => {
+              const optionText = additionalElement.textContent;
+              yOffset -= 20;
+              page.drawText(optionText, { ...additionalOptionsTextOptions, y: yOffset});
+            });
+
+            // Serialize the PDF to bytes
+            const pdfBytes = await pdfDoc.save();
+
+            // Create a Blob with the PDF data
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+            // Create a download link and trigger the download
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'Upfitting Checklist.pdf';
+            link.click();
+        }
+
+        // Add a click event listener to the button
+        document.getElementById('generatePDFButton').addEventListener('click', generatePDF);
+    </script>
 
     <script src="textContents.js"></script>
     <script src="callButton.js"></script>
