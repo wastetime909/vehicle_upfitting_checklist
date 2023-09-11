@@ -18,6 +18,10 @@
       display: none;
     }
 
+    .pdf-button{
+      display: none;
+    }
+
     .modal {
       display: none;
       /* position: fixed;
@@ -249,6 +253,8 @@
           optionHolder.appendChild(newOptionDiv);
         });
 
+        pdfButton = document.getElementById('generatePDFButton');
+        pdfButton.style.display = 'block';
           
         };
       };
@@ -447,7 +453,7 @@
 
 
           <div id="feedback"></div>
-          <div id="optionHolder"></div>
+          <div id="optionHolder" style="display: none;"></div>
 
           <div id="additionalFeedback"></div>
           <div id="buttonContainer"></div>
@@ -455,6 +461,9 @@
         <div class="container">
           <h3 class="text-success">Additional Information To Be Aware Of:</h3>
           <div id="infoButtonContainer"></div>
+        </div>
+        <div class="container d-flex justify-content-center flex-column" style="height: 80%;">
+          <button id="generatePDFButton" class="btn btn-info btn-lg text-white pdf-button">Generate PDF</button>
         </div>
       </div>
     </div>
@@ -471,10 +480,6 @@
       </div>
     </div>
 
-  
-    
-    <button id="generatePDFButton">Generate PDF</button>
-
     <script>
         // Function to generate the PDF
         async function generatePDF() {
@@ -486,49 +491,72 @@
             // Parse Recommended Options
             const additionalHolder = document.getElementById('buttonContainer');
             const additionalElements = additionalHolder.querySelectorAll('button');
-            
 
+            // Parse Additional Info
+            const additionalInfo = document.getElementById('infoButtonContainer');
+            const additionalInfoElements = additionalInfo.querySelectorAll('button');
 
             // Create a new PDF document
             const pdfDoc = await PDFLib.PDFDocument.create();
 
             // Add a new page to the document
-            const page = pdfDoc.addPage([400, 400]);
+            const page = pdfDoc.addPage();
+
+            const {width, height} = page.getSize();
+
+            fontSize = 20;
+            let yOffset = height - 2 * fontSize;
 
             // Draw text on the page
             const helveticaFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-            const drawTextOptions = {
-                x: 50,
-                y: 350,
+            
+            const drawHeadlineOptions = {
+                x: 30,
+                y: yOffset,
                 size: 30,
+                font: helveticaFont,
+                color: PDFLib.rgb(0, 0.53, 0.71),
+            };
+
+            page.drawText('Upfitting Checklist', drawHeadlineOptions);
+            
+            yOffset -= 40;
+
+            const selectedOptionsTitleOptions = {
+                x: 30,
+                y: yOffset,
+                size: 20,
                 font: helveticaFont,
                 color: PDFLib.rgb(0, 0, 0),
             };
 
-            const drawAdditionalOptions = {
-                x: 50,
-                y: 250,
-                size: 30,
-                font: helveticaFont,
-                color: PDFLib.rgb(0, 0, 0),
-            };
-            page.drawText('Upfitting Checklist!', drawTextOptions);
+            page.drawText('Selected Upfitting Options', selectedOptionsTitleOptions);
 
-            let yOffset = 330;
+            
             const additionalOptionsFont = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
 
-            const additionalOptionsTitleOptions = {
-                x: 50,
-                y: yOffset,
-                size: 14,
-                font: additionalOptionsFont,
-                color: PDFLib.rgb(0, 0, 0),
-            };
+            
             const additionalOptionsTextOptions = {
                 x: 50,
                 size: 12,
                 font: additionalOptionsFont,
                 color: PDFLib.rgb(0, 0, 0),
+            };
+
+            const additionalInfoHeaderOptions = {
+                x: 50,
+                size: 14,
+                font: additionalOptionsFont,
+                color: PDFLib.rgb(0, 0.53, 0.71),
+                maxWidth: width -50,
+            };
+
+            const additionalInfoTextOptions = {
+                x: 50,
+                size: 12,
+                font: additionalOptionsFont,
+                color: PDFLib.rgb(0, 0.53, 0.71),
+                maxWidth: width -50,
             };
 
             // Print Selected Options
@@ -537,8 +565,19 @@
               yOffset -= 20;
               page.drawText(optionText, { ...additionalOptionsTextOptions, y: yOffset});
             });
+            
+            yOffset -= 40;
 
-            page.drawText('Additional Upfitting Requirements', drawAdditionalOptions);
+            const additionalOptionsTitleOptions = {
+                x: 30,
+                y: yOffset,
+                size: 20,
+                font: additionalOptionsFont,
+                color: PDFLib.rgb(0, 0, 0),
+            };
+            page.drawText('Additional Upfitting Requirements', additionalOptionsTitleOptions);
+
+            
 
             // Print Additional Options
             additionalElements.forEach((additionalElement) => {
@@ -546,6 +585,32 @@
               yOffset -= 20;
               page.drawText(optionText, { ...additionalOptionsTextOptions, y: yOffset});
             });
+
+            yOffset -= 40;
+
+            const additionalInfoTitleOptions = {
+                x: 30,
+                y: yOffset,
+                size: 20,
+                font: additionalOptionsFont,
+                color: PDFLib.rgb(0, 0, 0),
+            };
+            
+            page.drawText('More Upfitting Requirements', additionalInfoTitleOptions);
+
+            // Print Additional Information
+            additionalInfoElements.forEach((additionalInfoElement) => {
+              stringValue = additionalInfoElement.textContent;
+              const jsFriendlyStringValue = stringValue
+              .toLowerCase()
+              .replace(/\s+/g, '_')
+              .replace(/(^|_)([a-z])/g, (match, p1, p2) => p2.toUpperCase());
+              additionalInfoText = window[jsFriendlyStringValue];
+
+              yOffset -= 50;
+              page.drawText(stringValue, { ...additionalInfoHeaderOptions, y: yOffset});
+              page.drawText(additionalInfoText, { ...additionalInfoTextOptions, y: yOffset -15});
+            })
 
             // Serialize the PDF to bytes
             const pdfBytes = await pdfDoc.save();
